@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simplified DES Calculator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 20px 40px rgba(0,0,0,0.3);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      width: min(1200px, 94%);
+      margin: 0 auto;
+      padding: 32px 0 50px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .title-box h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -1px;
+    }
+
+    .title-box p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 800px;
+    }
+
+    .badge {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--accent);
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 8px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #f3f4f6;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #020617;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 16px;
+      font-family: Consolas, monospace;
+    }
+
+    select {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #00111f;
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+
+    .result-box {
+      margin-top: 18px;
+      padding: 16px;
+      background: rgba(2,6,23,0.75);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .result-row:last-child {
+      border-bottom: 0;
+    }
+
+    .mono {
+      font-family: Consolas, monospace;
+      letter-spacing: 1px;
+    }
+
+    .bit-output {
+      color: var(--accent2);
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .error {
+      display: none;
+      color: #fecaca;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.35);
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .trace-section {
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(2,6,23,0.45);
+    }
+
+    .trace-title {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.07);
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .trace-title span {
+      color: var(--accent);
+      font-family: Consolas, monospace;
+      font-size: 14px;
+    }
+
+    .trace-content {
+      padding: 14px 16px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 11px 9px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    th {
+      color: #bfdbfe;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    td:first-child {
+      font-weight: bold;
+      color: #f8fafc;
+      width: 140px;
+    }
+
+    .explain {
+      color: var(--muted);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .table-card {
+      background: rgba(2,6,23,0.65);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .table-card h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: #dbeafe;
+    }
+
+    .small-table {
+      min-width: auto;
+      font-size: 13px;
+    }
+
+    .small-table td, .small-table th {
+      padding: 7px;
+      text-align: center;
+    }
+
+    .notes {
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .copy-area {
+      min-height: 170px;
+      resize: vertical;
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-box">
+        <h1>Simplified DES Calculator</h1>
+        <p>
+          Enter an 8-bit plaintext/ciphertext and a 10-bit key. The calculator generates K1 and K2, runs the S-DES rounds, and traces every step clearly.
+        </p>
+      </div>
+      <div class="badge">S-DES Teaching Tool</div>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>Input</h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="encrypt">Encrypt</option>
+              <option value="decrypt">Decrypt</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label id="dataLabel" for="dataBits">Plaintext / Ciphertext 8 bits</label>
+            <input id="dataBits" maxlength="8" value="11010111" placeholder="Example: 11010111" />
+          </div>
+
+          <div class="field">
+            <label for="keyBits">Key 10 bits</label>
+            <input id="keyBits" maxlength="10" value="1010000010" placeholder="Example: 1010000010" />
+          </div>
+
+          <div class="button-row">
+            <button class="primary" id="runBtn">Calculate</button>
+            <button class="secondary" id="exampleBtn">Load Example</button>
+            <button class="danger" id="clearBtn">Clear Trace</button>
+          </div>
+
+          <div id="errorBox" class="error"></div>
+
+          <div class="result-box">
+            <div class="result-row">
+              <span>K1</span>
+              <span id="k1Result" class="mono">--------</span>
+            </div>
+            <div class="result-row">
+              <span>K2</span>
+              <span id="k2Result" class="mono">--------</span>
+            </div>
+            <div class="result-row">
+              <span id="finalLabel">Ciphertext</span>
+              <span id="finalResult" class="mono bit-output">--------</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h2>Algorithm Tables</h2>
+          </div>
+          <div class="card-body">
+            <p class="notes">
+              This page uses the common Simplified DES configuration: P10, P8, IP, IP<sup>-1</sup>, EP, P4, S0, and S1. Positions are counted from 1, not from 0.
+            </p>
+            <div class="mini-grid">
+              <div class="table-card">
+                <h3>Permutations</h3>
+                <table class="small-table">
+                  <tbody>
+                    <tr><th>P10</th><td>3 5 2 7 4 10 1 9 8 6</td></tr>
+                    <tr><th>P8</th><td>6 3 7 4 8 5 10 9</td></tr>
+                    <tr><th>IP</th><td>2 6 3 1 4 8 5 7</td></tr>
+                    <tr><th>IP<sup>-1</sup></th><td>4 1 3 5 7 2 8 6</td></tr>
+                    <tr><th>EP</th><td>4 1 2 3 2 3 4 1</td></tr>
+                    <tr><th>P4</th><td>2 4 3 1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="table-card">
+                <h3>S-Boxes</h3>
+                <table class="small-table">
+                  <thead><tr><th>S0</th><th>0</th><th>1</th><th>2</th><th>3</th></tr></thead>
+                  <tbody>
+                    <tr><th>0</th><td>1</td><td>0</td><td>3</td><td>2</td></tr>
+                    <tr><th>1</th><td>3</td><td>2</td><td>1</td><td>0</td></tr>
+                    <tr><th>2</th><td>0</td><td>2</td><td>1</td><td>3</td></tr>
+                    <tr><th>3</th><td>3</td><td>1</td><td>3</td><td>2</td></tr>
+                  </tbody>
+                </table>
+                <br />
+                <table class="small-table">
+                  <thead><tr><th>S1</th><th>0</th><th>1</th><th>2</th><th>3</th></tr></thead>
+                  <tbody>
+                    <tr><th>0</th><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+                    <tr><th>1</th><td>2</td><td>0</td><td>1</td><td>3</td></tr>
+                    <tr><th>2</th><td>3</td><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><th>3</th><td>2</td><td>1</td><td>0</td><td>3</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>Step-by-Step Trace</h2>
+          </div>
+          <div class="card-body">
+            <div id="traceArea">
+              <p class="notes">Press Calculate to show the full trace.</p>
+            </div>
+
+            <div id="copyBlock" class="hidden">
+              <div class="button-row">
+                <button class="secondary" id="copyTraceBtn">Copy Text Trace</button>
+              </div>
+              <textarea id="textTrace" class="copy-area" readonly></textarea>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const P10 = [3, 5, 2, 7, 4, 10, 1, 9, 8, 6];
+    const P8 = [6, 3, 7, 4, 8, 5, 10, 9];
+    const IP = [2, 6, 3, 1, 4, 8, 5, 7];
+    const IP_INV = [4, 1, 3, 5, 7, 2, 8, 6];
+    const EP = [4, 1, 2, 3, 2, 3, 4, 1];
+    const P4 = [2, 4, 3, 1];
+
+    const S0 = [
+      [1, 0, 3, 2],
+      [3, 2, 1, 0],
+      [0, 2, 1, 3],
+      [3, 1, 3, 2]
+    ];
+
+    const S1 = [
+      [0, 1, 2, 3],
+      [2, 0, 1, 3],
+      [3, 0, 1, 0],
+      [2, 1, 0, 3]
+    ];
+
+    const modeEl = document.getElementById("mode");
+    const dataBitsEl = document.getElementById("dataBits");
+    const keyBitsEl = document.getElementById("keyBits");
+    const dataLabelEl = document.getElementById("dataLabel");
+    const finalLabelEl = document.getElementById("finalLabel");
+    const errorBox = document.getElementById("errorBox");
+    const traceArea = document.getElementById("traceArea");
+    const textTrace = document.getElementById("textTrace");
+    const copyBlock = document.getElementById("copyBlock");
+
+    function cleanBinary(value) {
+      return value.replace(/\s+/g, "");
+    }
+
+    function isBinaryOfLength(value, length) {
+      return new RegExp("^[01]{" + length + "}$").test(value);
+    }
+
+    function permute(bits, pattern) {
+      return pattern.map(index => bits[index - 1]).join("");
+    }
+
+    function leftShift(bits, amount) {
+      return bits.slice(amount) + bits.slice(0, amount);
+    }
+
+    function xorBits(a, b) {
+      let result = "";
+      for (let i = 0; i < a.length; i++) {
+        result += a[i] === b[i] ? "0" : "1";
+      }
+      return result;
+    }
+
+    function splitBits(bits) {
+      const mid = bits.length / 2;
+      return [bits.slice(0, mid), bits.slice(mid)];
+    }
+
+    function sBoxLookup(bits, box) {
+      const rowBinary = bits[0] + bits[3];
+      const colBinary = bits[1] + bits[2];
+      const row = parseInt(rowBinary, 2);
+      const col = parseInt(colBinary, 2);
+      const decimalValue = box[row][col];
+      const output = decimalValue.toString(2).padStart(2, "0");
+      return { rowBinary, colBinary, row, col, decimalValue, output };
+    }
+
+    function addRow(rows, step, input, operation, output, explanation) {
+      rows.push({ step, input, operation, output, explanation });
+    }
+
+    function generateKeys(key) {
+      const rows = [];
+
+      const p10 = permute(key, P10);
+      addRow(rows, "P10", key, "Permute using P10", p10, "Rearrange the 10-bit key according to P10.");
+
+      let [left, right] = splitBits(p10);
+      addRow(rows, "Split", p10, "L = first 5 bits, R = last 5 bits", left + " | " + right, "The key is divided into two 5-bit halves.");
+
+      const left1 = leftShift(left, 1);
+      const right1 = leftShift(right, 1);
+      addRow(rows, "LS-1", left + " | " + right, "Circular left shift each half by 1", left1 + " | " + right1, "Both halves are shifted left once.");
+
+      const afterLs1 = left1 + right1;
+      const k1 = permute(afterLs1, P8);
+      addRow(rows, "K1", afterLs1, "Permute using P8", k1, "From the shifted 10 bits, P8 selects and rearranges 8 bits to produce K1.");
+
+      const left2 = leftShift(left1, 2);
+      const right2 = leftShift(right1, 2);
+      addRow(rows, "LS-2", left1 + " | " + right1, "Circular left shift each half by 2", left2 + " | " + right2, "Starting from the LS-1 result, both halves are shifted left two more times.");
+
+      const afterLs2 = left2 + right2;
+      const k2 = permute(afterLs2, P8);
+      addRow(rows, "K2", afterLs2, "Permute using P8", k2, "P8 is applied again to produce K2.");
+
+      return { k1, k2, rows };
+    }
+
+    function fk(left, right, subKey, roundName) {
+      const rows = [];
+
+      const ep = permute(right, EP);
+      addRow(rows, "EP", right, "Expand and permute right half using EP", ep, "The 4-bit right half becomes 8 bits.");
+
+      const xored = xorBits(ep, subKey);
+      addRow(rows, "XOR", ep + " ⊕ " + subKey, "XOR expanded right half with subkey", xored, "This mixes the round subkey with the data.");
+
+      const [left4, right4] = splitBits(xored);
+      addRow(rows, "Split", xored, "Split into two 4-bit groups", left4 + " | " + right4, "The left group goes to S0 and the right group goes to S1.");
+
+      const s0 = sBoxLookup(left4, S0);
+      const s1 = sBoxLookup(right4, S1);
+      addRow(
+        rows,
+        "S0",
+        left4,
+        "Row = outer bits " + s0.rowBinary + ", Column = inner bits " + s0.colBinary,
+        s0.output,
+        "S0[" + s0.row + "][" + s0.col + "] = " + s0.decimalValue + ", which is " + s0.output + " in 2 bits."
+      );
+      addRow(
+        rows,
+        "S1",
+        right4,
+        "Row = outer bits " + s1.rowBinary + ", Column = inner bits " + s1.colBinary,
+        s1.output,
+        "S1[" + s1.row + "][" + s1.col + "] = " + s1.decimalValue + ", which is " + s1.output + " in 2 bits."
+      );
+
+      const sCombined = s0.output + s1.output;
+      const p4 = permute(sCombined, P4);
+      addRow(rows, "P4", sCombined, "Permute S-box output using P4", p4, "The 4-bit result is rearranged before XORing with the left half.");
+
+      const newLeft = xorBits(left, p4);
+      addRow(rows, "L XOR P4", left + " ⊕ " + p4, "XOR left half with P4 result", newLeft, "Only the left half changes inside fk. The right half stays the same.");
+
+      const output = newLeft + right;
+      addRow(rows, roundName + " Output", newLeft + " | " + right, "Concatenate new left with unchanged right", output, "This is the output of the fk function before the next operation.");
+
+      return { output, newLeft, right, rows };
+    }
+
+    function runSdes(data, key, mode) {
+      const keyData = generateKeys(key);
+      const kFirst = mode === "encrypt" ? keyData.k1 : keyData.k2;
+      const kSecond = mode === "encrypt" ? keyData.k2 : keyData.k1;
+      const trace = [];
+
+      trace.push({ title: "Key Generation", subtitle: "10-bit key → K1 and K2", rows: keyData.rows });
+
+      const initialRows = [];
+      const ip = permute(data, IP);
+      addRow(initialRows, "IP", data, "Initial permutation", ip, "The 8-bit input is rearranged using IP.");
+      let [left, right] = splitBits(ip);
+      addRow(initialRows, "Split", ip, "L = first 4 bits, R = last 4 bits", left + " | " + right, "The block is divided before Round 1.");
+      trace.push({ title: "Initial Permutation", subtitle: "Input block preparation", rows: initialRows });
+
+      const round1 = fk(left, right, kFirst, "Round 1");
+      trace.push({ title: "Round 1", subtitle: "fk using " + (mode === "encrypt" ? "K1" : "K2") + " = " + kFirst, rows: round1.rows });
+
+      const swRows = [];
+      const [round1Left, round1Right] = splitBits(round1.output);
+      const swapped = round1Right + round1Left;
+      addRow(swRows, "SW", round1Left + " | " + round1Right, "Swap left and right halves", round1Right + " | " + round1Left, "After Round 1, the two halves are switched before Round 2.");
+      trace.push({ title: "Switch Function", subtitle: "Swap halves", rows: swRows });
+
+      const [swLeft, swRight] = splitBits(swapped);
+      const round2 = fk(swLeft, swRight, kSecond, "Round 2");
+      trace.push({ title: "Round 2", subtitle: "fk using " + (mode === "encrypt" ? "K2" : "K1") + " = " + kSecond, rows: round2.rows });
+
+      const finalRows = [];
+      const finalOutput = permute(round2.output, IP_INV);
+      addRow(finalRows, "IP⁻¹", round2.output, "Final inverse permutation", finalOutput, "The final 8-bit result is produced by applying IP inverse.");
+      trace.push({ title: "Final Step", subtitle: "Apply inverse initial permutation", rows: finalRows });
+
+      return { k1: keyData.k1, k2: keyData.k2, finalOutput, trace };
+    }
+
+    function renderRows(rows) {
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Input</th>
+              <th>Operation</th>
+              <th>Output</th>
+              <th>Explanation</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td>${row.step}</td>
+                <td class="mono">${row.input}</td>
+                <td>${row.operation}</td>
+                <td class="mono bit-output">${row.output}</td>
+                <td class="explain">${row.explanation}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderTrace(trace) {
+      traceArea.innerHTML = trace.map(section => `
+        <div class="trace-section">
+          <div class="trace-title">
+            <div>${section.title}</div>
+            <span>${section.subtitle}</span>
+          </div>
+          <div class="trace-content">
+            ${renderRows(section.rows)}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function makeTextTrace(mode, data, key, result) {
+      const lines = [];
+      lines.push("Simplified DES Trace");
+      lines.push("Mode: " + (mode === "encrypt" ? "Encryption" : "Decryption"));
+      lines.push("Input: " + data);
+      lines.push("Key: " + key);
+      lines.push("K1: " + result.k1);
+      lines.push("K2: " + result.k2);
+      lines.push("Final Output: " + result.finalOutput);
+      lines.push("");
+
+      result.trace.forEach(section => {
+        lines.push("== " + section.title + " (" + section.subtitle + ") ==");
+        section.rows.forEach(row => {
+          lines.push(row.step + ":");
+          lines.push("  Input: " + row.input);
+          lines.push("  Operation: " + row.operation);
+          lines.push("  Output: " + row.output);
+          lines.push("  Explanation: " + row.explanation);
+        });
+        lines.push("");
+      });
+
+      return lines.join("\n");
+    }
+
+    function showError(message) {
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    }
+
+    function clearError() {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+    }
+
+    function calculate() {
+      clearError();
+      const mode = modeEl.value;
+      const data = cleanBinary(dataBitsEl.value);
+      const key = cleanBinary(keyBitsEl.value);
+
+      dataBitsEl.value = data;
+      keyBitsEl.value = key;
+
+      if (!isBinaryOfLength(data, 8)) {
+        showError("The data input must be exactly 8 bits and can only contain 0 and 1.");
+        return;
+      }
+
+      if (!isBinaryOfLength(key, 10)) {
+        showError("The key must be exactly 10 bits and can only contain 0 and 1.");
+        return;
+      }
+
+      const result = runSdes(data, key, mode);
+      document.getElementById("k1Result").textContent = result.k1;
+      document.getElementById("k2Result").textContent = result.k2;
+      document.getElementById("finalResult").textContent = result.finalOutput;
+      renderTrace(result.trace);
+      textTrace.value = makeTextTrace(mode, data, key, result);
+      copyBlock.classList.remove("hidden");
+    }
+
+    function updateLabels() {
+      if (modeEl.value === "encrypt") {
+        dataLabelEl.textContent = "Plaintext 8 bits";
+        finalLabelEl.textContent = "Ciphertext";
+      } else {
+        dataLabelEl.textContent = "Ciphertext 8 bits";
+        finalLabelEl.textContent = "Plaintext";
+      }
+    }
+
+    document.getElementById("runBtn").addEventListener("click", calculate);
+
+    document.getElementById("exampleBtn").addEventListener("click", () => {
+      modeEl.value = "encrypt";
+      dataBitsEl.value = "11010111";
+      keyBitsEl.value = "1010000010";
+      updateLabels();
+      calculate();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      clearError();
+      document.getElementById("k1Result").textContent = "--------";
+      document.getElementById("k2Result").textContent = "--------";
+      document.getElementById("finalResult").textContent = "--------";
+      traceArea.innerHTML = '<p class="notes">Press Calculate to show the full trace.</p>';
+      textTrace.value = "";
+      copyBlock.classList.add("hidden");
+    });
+
+    document.getElementById("copyTraceBtn").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(textTrace.value);
+        document.getElementById("copyTraceBtn").textContent = "Copied!";
+        setTimeout(() => {
+          document.getElementById("copyTraceBtn").textContent = "Copy Text Trace";
+        }, 1200);
+      } catch (err) {
+        textTrace.select();
+        document.execCommand("copy");
+      }
+    });
+
+    modeEl.addEventListener("change", updateLabels);
+
+    dataBitsEl.addEventListener("keydown", event => {
+      if (event.key === "Enter") calculate();
+    });
+
+    keyBitsEl.addEventListener("keydown", event => {
+      if (event.key === "Enter") calculate();
+    });
+
+    updateLabels();
+    calculate();
+  </script>
+</body>
+</html>
